@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 
-import {wait} from './wait'
+import { wait } from './wait'
 
 async function run(): Promise<void> {
   try {
@@ -77,6 +77,14 @@ async function run(): Promise<void> {
 
     for (const pullRequest of pullRequests.data) {
       core.info(`\n\n#${pullRequest.number} - ${pullRequest.head.ref}:`)
+
+      // Add this check at the beginning of the loop
+      if (pullRequest.base.ref !== mainBranchName) {
+        core.info(
+          `🛑 not moving forward since #${pullRequest.number} (${pullRequest.head.ref}) is not targeting the ${mainBranchName} branch`
+        )
+        continue
+      }
 
       let shouldMergeMain = false
 
