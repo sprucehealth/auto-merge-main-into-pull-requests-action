@@ -8,7 +8,11 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -88,7 +92,12 @@ function run() {
                 .filter(label => label !== 'false');
             core.debug(`onlyMergeBranchesWithPrefixes setting: ${onlyMergeBranchesWithPrefixes}`);
             for (const pullRequest of pullRequests.data) {
-                core.info(`\n\n#${pullRequest.number} - ${pullRequest.head.ref}:`);
+                core.info(`\n\n#${pullRequest.number}; head: ${pullRequest.head.ref}; base: ${pullRequest.base.ref}`);
+                // Add this check at the beginning of the loop
+                if (pullRequest.base.ref !== mainBranchName) {
+                    core.info(`🛑 not moving forward since #${pullRequest.number} (${pullRequest.head.ref}) is not targeting the ${mainBranchName} branch`);
+                    continue;
+                }
                 let shouldMergeMain = false;
                 const reviews = yield octokit.rest.pulls.listReviews({
                     owner: repoOwner,

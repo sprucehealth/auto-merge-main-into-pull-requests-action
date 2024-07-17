@@ -76,7 +76,9 @@ async function run(): Promise<void> {
     )
 
     for (const pullRequest of pullRequests.data) {
-      core.info(`\n\n#${pullRequest.number}; head: ${pullRequest.head.ref}; base: ${pullRequest.base.ref}`)
+      core.info(
+        `\n\n#${pullRequest.number}; head: ${pullRequest.head.ref}; base: ${pullRequest.base.ref}`
+      )
 
       // Add this check at the beginning of the loop
       if (pullRequest.base.ref !== mainBranchName) {
