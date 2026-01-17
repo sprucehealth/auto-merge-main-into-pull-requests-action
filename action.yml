@@ -38,6 +38,10 @@ inputs:
     required: false
     description: 'an optional comma-separated list of Pull Request labels which, when present, will prevent this action from running'
     default: 'false'
+  maxNumberOfRandomlySelectedPRsToMergeMainInto:
+    required: false
+    description: 'an optional maximum number of randomly selected Pull Requests to merge main into. If set, only this many PRs (or fewer if fewer qualify) will be randomly selected from all qualifying PRs and have main merged into them.'
+    default: 'false'
 
 runs:
   using: 'node20'
