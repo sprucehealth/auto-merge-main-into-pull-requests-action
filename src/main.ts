@@ -75,6 +75,21 @@ async function run(): Promise<void> {
       `onlyMergeBranchesWithPrefixes setting: ${onlyMergeBranchesWithPrefixes}`
     )
 
+    const maxNumberOfRandomlySelectedPRsInput = core.getInput(
+      'maxNumberOfRandomlySelectedPRsToMergeMainInto'
+    )
+    const maxNumberOfRandomlySelectedPRs =
+      maxNumberOfRandomlySelectedPRsInput &&
+      maxNumberOfRandomlySelectedPRsInput !== 'false'
+        ? parseInt(maxNumberOfRandomlySelectedPRsInput, 10)
+        : null
+    core.debug(
+      `maxNumberOfRandomlySelectedPRsToMergeMainInto: ${maxNumberOfRandomlySelectedPRs}`
+    )
+
+    // First pass: collect all PRs that qualify for merging
+    const qualifyingPullRequests: typeof pullRequests.data = []
+
     for (const pullRequest of pullRequests.data) {
       core.info(
         `\n\n#${pullRequest.number}; head: ${pullRequest.head.ref}; base: ${pullRequest.base.ref}`
@@ -185,6 +200,31 @@ async function run(): Promise<void> {
         continue
       }
 
+      // Add to qualifying PRs list instead of processing immediately
+      qualifyingPullRequests.push(pullRequest)
+    }
+
+    // Randomly select PRs if max number is specified
+    let pullRequestsToProcess: typeof pullRequests.data = qualifyingPullRequests
+    if (
+      maxNumberOfRandomlySelectedPRs !== null &&
+      maxNumberOfRandomlySelectedPRs > 0 &&
+      qualifyingPullRequests.length > maxNumberOfRandomlySelectedPRs
+    ) {
+      // Shuffle array using Fisher-Yates algorithm
+      const shuffled = [...qualifyingPullRequests]
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+      }
+      pullRequestsToProcess = shuffled.slice(0, maxNumberOfRandomlySelectedPRs)
+      core.info(
+        `🎲 Randomly selected ${pullRequestsToProcess.length} out of ${qualifyingPullRequests.length} qualifying PRs`
+      )
+    }
+
+    // Second pass: actually merge main into selected PRs
+    for (const pullRequest of pullRequestsToProcess) {
       try {
         core.info(
           `... attempting to merge ${mainBranchName} branch into head of PR #${pullRequest.number} (${pullRequest.head.ref})`
