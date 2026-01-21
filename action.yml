@@ -41,7 +41,7 @@ inputs:
   maxNumberOfRandomlySelectedPRsToMergeMainInto:
     required: false
     description: 'an optional maximum number of randomly selected Pull Requests to merge main into. If set, only this many PRs (or fewer if fewer qualify) will be randomly selected from all qualifying PRs and have main merged into them.'
-    default: 'false'
+    default: '50'
 
 runs:
   using: 'node20'
